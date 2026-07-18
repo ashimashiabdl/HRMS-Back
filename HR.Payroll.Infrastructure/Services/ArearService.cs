@@ -13,7 +13,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 using System.Data;
 using System.Text;
 
@@ -35,14 +34,14 @@ namespace HR.Payroll.Infrastructure.Services
         };
 
         /// <summary>
-        /// حداکثر تعداد تلاش برای هر حکم؛ بعد از آن حکم تا ری‌استارت برنامه (یا رفع دستی مشکل) دیگر پردازش و لاگ نمی‌شود
+        /// حداکثر تعداد تلاش برای هر حکم؛ بعد از آن حکم تا اصلاح مجدد (تغییر LastModifiedDate) دیگر پردازش و لاگ نمی‌شود
         /// </summary>
         private const int MaxAttemptsPerOrder = 2;
 
         /// <summary>
-        /// شمارنده تلاش‌ها به تفکیک حکم (بین چرخه‌های جاب مشترک است چون سرویس Scoped ساخته می‌شود)
+        /// عنوان رکورد نشانگر «تلاش پردازش» در جدول Batch_Log؛ شمارش تلاش‌ها بر اساس همین رکوردها انجام می‌شود
         /// </summary>
-        private static readonly ConcurrentDictionary<long, int> OrderAttemptCounts = new();
+        private const string AttemptMarkerTitle = "ArearService.Attempt";
 
         public ArearService(
             IMapper mapper,
@@ -79,8 +78,9 @@ namespace HR.Payroll.Infrastructure.Services
                 var needToCheckOrders = LoadOrdersNeedingArearCalculation();
 
                 // حذف احکامی که به سقف تلاش رسیده‌اند تا در هر چرخه دوباره پردازش و لاگ نشوند
+                var attemptCounts = LoadAttemptCountsFromBatchLog(needToCheckOrders);
                 var eligibleOrders = needToCheckOrders
-                    .Where(o => OrderAttemptCounts.GetValueOrDefault(o.Id) < MaxAttemptsPerOrder)
+                    .Where(o => attemptCounts.GetValueOrDefault(o.Id) < MaxAttemptsPerOrder)
                     .ToList();
 
                 if (eligibleOrders.Count == 0)
@@ -101,17 +101,14 @@ namespace HR.Payroll.Infrastructure.Services
                     .OrderBy(i => i.RecruitOrder?.EmployeeId ?? 0)
                     .ThenBy(i => i.Serial))
                 {
-                    var attempt = OrderAttemptCounts.AddOrUpdate(order.Id, 1, (_, c) => c + 1);
+                    var attempt = attemptCounts.GetValueOrDefault(order.Id) + 1;
+                    RecordAttemptMarker(order, runId, attempt);
 
                     var success = ProcessSingleOrderArear(order, runId);
 
-                    if (success)
+                    if (!success && attempt >= MaxAttemptsPerOrder)
                     {
-                        OrderAttemptCounts.TryRemove(order.Id, out _);
-                    }
-                    else if (attempt >= MaxAttemptsPerOrder)
-                    {
-                        var msg = $"حکم {order.Id} پس از {attempt} تلاش ناموفق از چرخه محاسبه معوقه کنار گذاشته شد؛ تا رفع مشکل (یا ری‌استارت سرویس) دیگر پردازش نمی‌شود.";
+                        var msg = $"حکم {order.Id} پس از {attempt} تلاش ناموفق از چرخه محاسبه معوقه کنار گذاشته شد؛ تا اصلاح مجدد حکم دیگر پردازش نمی‌شود.";
                         _logger.LogWarning("[{RunId}] {Message}", runId, msg);
                         AddBatchLog(new BatchLog
                         {
@@ -148,6 +145,51 @@ namespace HR.Payroll.Infrastructure.Services
                     && i.IsDeleted != true)
                 .AsNoTracking()
                 .ToList();
+        }
+
+        /// <summary>
+        /// شمارش تلاش‌های قبلی هر حکم بر اساس رکوردهای نشانگر ثبت‌شده در جدول Batch_Log.
+        /// فقط تلاش‌های بعد از آخرین ویرایش حکم شمرده می‌شوند؛ بنابراین با اصلاح حکم (تغییر LastModifiedDate)
+        /// شمارنده صفر شده و حکم دوباره دو فرصت پردازش پیدا می‌کند.
+        /// </summary>
+        private Dictionary<long, int> LoadAttemptCountsFromBatchLog(List<InterdictOrder> orders)
+        {
+            if (orders.Count == 0)
+            {
+                return new Dictionary<long, int>();
+            }
+
+            var orderIds = orders.Select(o => o.Id).ToList();
+
+            var markers = _unitOfWork.Context.BatchLogs
+                .Where(b =>
+                    b.title == AttemptMarkerTitle
+                    && b.IsDeleted != true
+                    && b.InterdictOrderId != null
+                    && orderIds.Contains(b.InterdictOrderId.Value))
+                .Select(b => new { b.InterdictOrderId, b.CreateDate })
+                .AsNoTracking()
+                .ToList();
+
+            return orders.ToDictionary(
+                o => o.Id,
+                o => markers.Count(m =>
+                    m.InterdictOrderId == o.Id
+                    && (o.LastModifiedDate == null || m.CreateDate >= o.LastModifiedDate)));
+        }
+
+        /// <summary>
+        /// ثبت رکورد نشانگر تلاش در Batch_Log (مبنای شمارش سقف 2 تلاش برای هر حکم)
+        /// </summary>
+        private void RecordAttemptMarker(InterdictOrder order, string runId, int attempt)
+        {
+            AddBatchLog(new BatchLog
+            {
+                title = AttemptMarkerTitle,
+                EmployeeId = order.RecruitOrder?.EmployeeId,
+                InterdictOrderId = order.Id,
+                LogDescription = $"[{runId}] تلاش شماره {attempt} از {MaxAttemptsPerOrder} برای محاسبه معوقه حکم {order.Id}"
+            });
         }
 
         /// <returns>true فقط وقتی محاسبه و ذخیره معوقه کامل موفق باشد</returns>

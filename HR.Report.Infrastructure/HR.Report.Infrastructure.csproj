@@ -48,19 +48,9 @@
   <ItemGroup>
     <Reference Include="Stimulsoft.Base">
       <HintPath>..\Assets\StimulDLL\Stimulsoft.Base.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="Stimulsoft.Data">
-      <HintPath>..\Assets\StimulDLL\Stimulsoft.Data.dll</HintPath>
-      <Private>true</Private>
     </Reference>
     <Reference Include="Stimulsoft.Report">
       <HintPath>..\Assets\StimulDLL\Stimulsoft.Report.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="Stimulsoft.Report.Helper">
-      <HintPath>..\Assets\StimulDLL\Stimulsoft.Report.Helper.dll</HintPath>
-      <Private>true</Private>
     </Reference>
   </ItemGroup>
 
