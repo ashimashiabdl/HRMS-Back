@@ -1,0 +1,14 @@
+﻿XXX ---   this is just for SystemSetting Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS.Core.All\HR.WorkFlow.Infrastructure\Data" path :
+
+
+dotnet ef  migrations add inewwwhut14 --context WorkFlowContext  --project ..\HR.WorkFlow.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+3 - run this line in the "~\HRMS.Core.All\HR.WorkFlow.Infrastructure" path : 
+dotnet ef database update --project ..\HR.WorkFlow.Infrastructure.csproj --context WorkFlowContext
+
+
+if you want to down the database version run below code in the "~\HRMS.Core.All\HR.WorkFlow.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.WorkFlow.Infrastructure.csproj

@@ -1,0 +1,17 @@
+﻿XXX ---   this is just for SystemSetting Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS.Core.All\HR.Order.Infrastructure\Data" path :
+
+
+dotnet ef  migrations add DelPos --context OrderContext  --project ..\HR.Order.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+3 - run this line in the "~\HRMS.Core.All\HR.Order.Infrastructure" path : 
+dotnet ef database update --project ..\HR.Order.Infrastructure.csproj --context OrderContext --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+if you want to down the database version run below code in the "~\HRMS.Core.All\HR.Order.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.Order.Infrastructure.csproj
+
+

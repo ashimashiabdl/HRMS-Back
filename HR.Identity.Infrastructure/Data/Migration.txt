@@ -1,0 +1,42 @@
+XXX ---   this is just for Identity Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS.Core.All\HR.Identity.Infrastructure\Data" path :
+
+
+
+ dotnet ef migrations add DeleAudfdfdnnnsol   --context IdentityContext  --project ..\HR.Identity.Infrastructure.csproj  --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+ dotnet ef migrations add Addxcdcfeesdfsssdfsdrtf11   --context CustomIdentityContext  --project ..\HR.Identity.Infrastructure.csproj  --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+3 - run this line in the "~\HRMS.Core.All\HR.Identity.Infrastructure" path : 
+dotnet ef database update --project ..\HR.Identity.Infrastructure.csproj --context IdentityContext  --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+dotnet ef database update --project ..\HR.Identity.Infrastructure.csproj --context CustomIdentityContext  --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+
+if you want to down the database version run below code in the "~\HRMS.Core.All\HR.Identity.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.Identity.Infrastructure.csproj
+
+
+
+XXX ---   this is just for Identity Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS.Core.All\HR.Identity.Infrastructure\Data" path :
+
+
+dotnet ef  migrations add   Init122 --context CustomIdentityContext  --project ..\HR.Identity.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+3 - run this line in the "~\HRMS.Core.All\HR.Identity.Infrastructure" path : 
+dotnet ef database update --project ..\HR.Identity.Infrastructure.csproj --context CustomIdentityContext  --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+if you want to down the database version run below code in the "~\HRMS.Core.All\HR.Identity.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.Identity.Infrastructure.csproj
+
+
+
+

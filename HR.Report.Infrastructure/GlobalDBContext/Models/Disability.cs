@@ -1,0 +1,66 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace HR.Report.Infrastructure.GlobalDBContext.Models;
+
+[Table("Disability", Schema = "emp")]
+[Microsoft.EntityFrameworkCore.Index("EmployeeId", Name = "IX_Disability_EmployeeId")]
+[Microsoft.EntityFrameworkCore.Index("OrganisationChartId", Name = "IX_Disability_OrganisationChartId")]
+public partial class Disability
+{
+    [Key]
+    public long Id { get; set; }
+
+    public long? OrganisationChartId { get; set; }
+
+    public long EmployeeId { get; set; }
+
+    public long? DisabilityLevelId { get; set; }
+
+    public int? DisabilityPercent { get; set; }
+
+    public DateOnly? DisabilityStartDate { get; set; }
+
+    public DateOnly? DisabilityEndDate { get; set; }
+
+    public bool IsLast { get; set; }
+
+    public long? DisabilityTypeId { get; set; }
+
+    public bool? HasCertification { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? CreateDate { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? LastModifiedDate { get; set; }
+
+    [Column("IPAddress")]
+    [StringLength(128)]
+    public string Ipaddress { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? StartDate { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? EndDate { get; set; }
+
+    [StringLength(256)]
+    public string? CreatedBy { get; set; }
+
+    [StringLength(256)]
+    public string? LastModifiedBy { get; set; }
+
+    [ForeignKey("EmployeeId")]
+    [InverseProperty("Disabilities")]
+    public virtual Employee Employee { get; set; } = null!;
+
+    [ForeignKey("OrganisationChartId")]
+    [InverseProperty("Disabilities")]
+    public virtual OrganisationChart? OrganisationChart { get; set; }
+}

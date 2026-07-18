@@ -1,0 +1,10 @@
+
+
+dotnet ef  migrations add ExcelDB99 --context BaseInfoContext  --project ..\HR.BaseInfo.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+dotnet ef database update --context BaseInfoContext --project ..\HR.BaseInfo.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+
+

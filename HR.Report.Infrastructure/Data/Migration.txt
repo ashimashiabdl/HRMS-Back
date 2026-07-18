@@ -1,0 +1,16 @@
+﻿XXX ---   this is just for Report Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS.Core.All\HR.Report.Infrastructure\Data" path :
+
+
+dotnet ef  migrations add Mweuusdsdsdkjjkvesds --context ReportContext  --project ..\HR.Report.Infrastructure.csproj  --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+3 - run this line in the "~\HRMS.Core.All\HR.Report.Infrastructure" path : 
+dotnet ef database update --project ..\HR.Report.Infrastructure.csproj --context ReportContext --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+if you want to down the database version run below code in the "~\HRMS.Core.All\HR.Report.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.Report.Infrastructure.csproj
+
+

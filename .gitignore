@@ -1,0 +1,341 @@
+# =============================================================================
+#  HRMS-Back — .gitignore
+#  Stack: ASP.NET Core / .NET | Visual Studio | Rider | VS Code | Windows
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Build results
+# -----------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]uild/
+[Bb]uild[Ll]og.*
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+*.pidb
+*.svclog
+*.scc
+*.recipe
+
+
+# -----------------------------------------------------------------------------
+# Visual Studio / MSBuild
+# -----------------------------------------------------------------------------
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.rsuser
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# MSBuild Binary and Structured Log
+*.binlog
+
+# Visual Studio profiler / diagnostic
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio Trace Files
+*.e2e
+
+# TFS / SourceSafe leftovers
+$tf/
+
+
+# -----------------------------------------------------------------------------
+# Publish / packaging
+# -----------------------------------------------------------------------------
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+publish/
+PublishScripts/
+*.Publish.xml
+*.azurePubxml
+*.pubxml.user
+
+
+# -----------------------------------------------------------------------------
+# ASP.NET Core / .NET specific
+# -----------------------------------------------------------------------------
+appsettings.*.local.json
+appsettings.Local.json
+**/secrets.json
+**/Properties/launchSettings.json.user
+
+# User secrets (local only — never commit)
+**/secrets/
+
+# Scaffolded / generated
+**/wwwroot/lib/
+**/node_modules/
+
+# Razor / static web assets caches
+**/rpswa.dswa.cache.json
+**/rjsmcshtml.dswa.cache.json
+**/rjsmrazor.dswa.cache.json
+**/rjimswa.dswa.cache.json
+
+
+# -----------------------------------------------------------------------------
+# Test / coverage
+# -----------------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*/
+*.lcov
+TestResult.xml
+nunit-*.xml
+xunit-results/
+BenchmarkDotNet.Artifacts/
+
+
+# -----------------------------------------------------------------------------
+# JetBrains Rider / ReSharper
+# -----------------------------------------------------------------------------
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+
+# -----------------------------------------------------------------------------
+# VS Code / Cursor
+# -----------------------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+*.code-workspace
+.history/
+.cursor/
+.cursorignore
+
+
+# -----------------------------------------------------------------------------
+# OS junk
+# -----------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+[Dd]esktop.ini
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+
+
+# -----------------------------------------------------------------------------
+# Secrets & environment (CRITICAL — do not commit)
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+!**/certs/.gitkeep
+connectionstrings.local.json
+**/local.settings.json
+**/appsettings.Secrets.json
+
+
+# -----------------------------------------------------------------------------
+# Databases & local data
+# -----------------------------------------------------------------------------
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+
+# -----------------------------------------------------------------------------
+# Docker / containers
+# -----------------------------------------------------------------------------
+docker-compose.override.yml
+.docker/
+
+
+# -----------------------------------------------------------------------------
+# Logs & dumps
+# -----------------------------------------------------------------------------
+*.log
+logs/
+LogFiles/
+*.dmp
+*.mdmp
+crash-dumps/
+
+
+# -----------------------------------------------------------------------------
+# Misc tooling
+# -----------------------------------------------------------------------------
+*.bak
+*.swp
+*.swo
+*~
+.cache/
+.temp/
+.tmp/
+temp/
+tmp/
+*.orig
+*.rej
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# DocProject
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once
+publish/
+
+# Windows Azure Build Output
+csx/
+*.build.csdef
+
+# Microsoft Fakes
+FakesAssemblies/
+
+# GhostDoc
+*.GhostDoc.xml
+
+# TeamCity
+_TeamCity*
+
+# DotCover
+*.dotCover
+
+# AxoCover
+.axoCover/*
+!.axoCover/settings.json
+
+# Coverlet
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# StyleCop
+StyleCopReport.xml
+
+# Paket
+.paket/paket.exe
+paket-files/
+
+# FAKE
+.fake/
+
+# Cake
+tools/**
+!tools/packages.config
+
+# TabNine
+.tabnine/
+
+# Continuum
+.ionide/
+
+# Local History (VS / JetBrains plugins)
+.localhistory/
+
+# Health checks / OpenAPI codegen dumps (optional local)
+**/Generated/
+
+
+# -----------------------------------------------------------------------------
+# Project-local overrides (keep personal ignores out of the shared file)
+# -----------------------------------------------------------------------------
+.gitignore.local
+*.local
+!*.local.json.example

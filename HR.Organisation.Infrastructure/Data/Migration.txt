@@ -1,0 +1,17 @@
+﻿XXX ---   this is just for Organisation Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS.Core.All\HR.Organisation.Infrastructure\Data" path :
+
+
+dotnet ef  migrations add Accoin74  --context OrganisationContext  --project ..\HR.Organisation.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+3 - run this line in the "~\HRMS.Core.All\HR.Organisation.Infrastructure" path : 
+dotnet ef database update --project ..\HR.Organisation.Infrastructure.csproj --context OrganisationContext --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+
+if you want to down the database version run below code in the "~\HRMS.Core.All\HR.Organisation.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.Organisation.Infrastructure.csproj
+
+

@@ -1,0 +1,126 @@
+using HR.SharedKernel.Attribute;
+using HR.BaseInfo.Core.Entities;
+using HR.BaseInfo.Core.Interfaces;
+using HR.SharedKernel;
+using HR.SharedKernel.DTOs;
+
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using HR.SharedKernel.API;
+
+using AutoMapper;
+
+using HR.SharedKernel.Dapper;
+using HR.FormulaEngine.Core.Data;
+using HR.FormulaEngine.Core.DTOs;
+using HR.Organisation.Core.Entities;
+using HR.SharedKernel.Extensions;
+using HR.FormulaEngine.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using LinqKit;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using HR.SharedKernel.Service;
+using HRMS.API.Cache;
+using System.ComponentModel;
+
+namespace HRMS.API.Controllers.FormulaEngine;
+
+
+[Route("api/FormulaTable")]
+[ControllerGroup("FormulaEngine", " فرمول ها ")]
+[DisplayName("جدول پایه فرمول ها")]
+public class FormulaTableController : AppBaseController
+{
+    private readonly HR.FormulaEngine.Infrastructure.Services.FormulaTableService _formulaDatabaseFunctionDefinitionService;
+    private FormulaEngineContext _context;
+    public FormulaTableController(FormulaEngineContext context, HR.FormulaEngine.Infrastructure.Services.FormulaTableService FormulaTableService, ILogger<FormulaTableController> logger, IHttpContextAccessor accessor, IMapper mapper, IDapper dapper, UserResolverService UserResolverService) : base(UserResolverService, logger, accessor, mapper, dapper)
+    {
+        _context = context;
+        _formulaDatabaseFunctionDefinitionService = FormulaTableService;
+        _formulaDatabaseFunctionDefinitionService._currentUserDefaultOrganId = currentUserDefaultOrganId;
+    }
+
+    [HttpGet, Route("GetAsKeyValuePair")]
+[CustomAccessKey(AccessKey: "view")]
+    
+    public IActionResult GetAsKeyValuePair()
+{                
+            return this.AppOk(_formulaDatabaseFunctionDefinitionService.GetAsKeyValuePair());
+}        [HttpGet, Route("Get/{id}")]
+[CustomAccessKey(AccessKey: "view")]
+    
+    public IActionResult Get(int id)
+{                
+            return this.AppOk(_formulaDatabaseFunctionDefinitionService.Get(id));
+}
+    [HttpGet, Route("GetPagedData/{currentPage}/{pageSize}/{filter?}/{activeSortColumn?}/{Sortdirection?}/{IgnoreExpired?}")]
+[CustomAccessKey(AccessKey: "view")]
+    
+    public IActionResult GetPagedData(int currentPage = 0, int pageSize = 10, [FromQuery] string filter = "", [FromQuery] string activeSortColumn = "", [FromQuery] string Sortdirection = "", [FromQuery] bool IgnoreExpired = true)
+{                
+            var Filtered = _context.FormulaTables
+                .Include(i=>i.TableType)
+           .Where(DateValidityExtension<FormulaTable>.GetDateValidationPredicate(IgnoreExpired).And(i => i.OrganisationChartId == currentUserDefaultOrganId));
+            return this.AppOk(_formulaDatabaseFunctionDefinitionService.GetPagedData(currentPage: currentPage, pageSize: pageSize, filter, activeSortColumn, Sortdirection, IgnoreExpired, EmployeeId: null, CustomDataSource: Filtered));
+}        [HttpPost("Post")]
+[CustomAccessKey(AccessKey: "create")]
+    
+    public async Task<IActionResult> Post([FromBody] FormulaTableDTO body)
+{            if (ModelState.IsValid)
+        {
+            try
+            {
+                
+                return Ok(await _formulaDatabaseFunctionDefinitionService.CreateForAsync(body));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return this.AppBadRequest("Internal Server Error");
+            }
+        }
+        else
+        {
+            IEnumerable<ModelError> allErrors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var Error in allErrors)
+            {
+                _logger.LogInformation(Error.ErrorMessage);
+            }
+        }
+        return this.AppBadRequest(ModelState);
+}        [HttpPut("Put")]
+[CustomAccessKey(AccessKey: "update")]
+    
+    public async Task<IActionResult> Put([FromBody] FormulaTableDTO body)
+{            if (ModelState.IsValid)
+        {
+            try
+            {
+                
+                var result = await _formulaDatabaseFunctionDefinitionService.UpdateForAsync(body);
+                return this.AppOk(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return this.AppBadRequest("Internal Server Error");
+            }
+        }
+        else
+        {
+            IEnumerable<ModelError> allErrors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var Error in allErrors)
+            {
+                _logger.LogInformation(Error.ErrorMessage);
+            }
+        }
+        return this.AppBadRequest(ModelState);
+}
+    [HttpDelete("Delete/{id}")]
+[CustomAccessKey(AccessKey: "delete")]
+    
+    public IActionResult Delete(int id)
+{                
+            return this.AppOk(_formulaDatabaseFunctionDefinitionService.DeleteRecord(id));
+}
+}

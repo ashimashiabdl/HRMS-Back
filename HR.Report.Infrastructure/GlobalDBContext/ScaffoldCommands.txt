@@ -1,0 +1,19 @@
+XXX ---   This file contains the command to re-scaffold the GlobalDbContext   --- XXX
+
+To update the GlobalDbContext with all tables from the database, run the following command from the root of the solution (C:\hrms.core.all\):
+
+dotnet ef dbcontext scaffold "Data Source=.;Initial Catalog=CoreHR;User Id=jetHRUSR55;Password=Loghaz/3612;MultipleActiveResultSets=true;TrustServerCertificate=True;encrypt=false;Connect Timeout=60" Microsoft.EntityFrameworkCore.SqlServer --project ..\HR.Report.Infrastructure.csproj --context-dir GlobalDBContext --output-dir GlobalDBContext/Models -c GlobalDbContext --data-annotations --force
+
+
+Explanation of parameters:
+--project: Specifies the project to run the command in.
+--context-dir: The directory where the DbContext file will be generated.
+--output-dir: The directory where the entity model classes will be generated.
+-c (or --context): The name for the generated DbContext class.
+--data-annotations: Use attributes to configure the model (where possible). If omitted, only the fluent API is used.
+--force: Overwrites existing files. This is necessary to update the context and models.
+
+
+[Microsoft.EntityFrameworkCore.Index("
+
+

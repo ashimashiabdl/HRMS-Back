@@ -1,0 +1,14 @@
+XXX ---   this is just for Attendance Domain   --- XXX
+1- change data model
+2- run this line in the "~\HRMS\HR.Attendance.Infrastructure\Data" path :
+
+
+dotnet ef migrations add ShiftOverride --context AttendanceContext --project ..\HR.Attendance.Infrastructure.csproj --startup-project ..\..\HRMS.API\HRMS.API.csproj
+
+3 - run this line in the "~\HRMS\HR.Attendance.Infrastructure" path :
+dotnet ef database update --project ..\HR.Attendance.Infrastructure.csproj --context AttendanceContext
+
+
+if you want to down the database version run below code in the "~\HRMS\HR.Attendance.Infrastructure\Data" path :
+
+dotnet ef migrations remove --project ..\HR.Attendance.Infrastructure.csproj

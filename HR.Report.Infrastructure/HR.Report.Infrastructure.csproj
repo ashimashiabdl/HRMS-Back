@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="16.1.1" />
+		<PackageReference Include="ClosedXML" Version="0.105.0" />
+		<PackageReference Include="EPPlus" Version="8.4.1" />
+		<PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Build" Version="18.0.2" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="NuGet.Packaging" Version="7.6.0" />
+		<PackageReference Include="NuGet.Protocol" Version="7.6.0" />
+
+		<PackageReference Include="System.IO.Packaging" Version="10.0.2" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="5.0.0" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.2" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.8" />
+		
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HR.BaseInfo.Infrastructure\HR.BaseInfo.Infrastructure.csproj" />
+    <ProjectReference Include="..\Hr.Employee.infrastructure\Hr.Employee.infrastructure.csproj" />
+    <ProjectReference Include="..\HR.Order.Core\HR.Order.Core.csproj" />
+    <ProjectReference Include="..\HR.Organisation.Infrastructure\HR.Organisation.Infrastructure.csproj" />
+    <ProjectReference Include="..\HR.Report.Core\HR.Report.Core.csproj" />
+    <ProjectReference Include="..\HR.SharedKernel\HR.SharedKernel.csproj" />
+    <ProjectReference Include="..\Hr.SystemSetting.Infrastructure\Hr.SystemSetting.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Stimulsoft.Base">
+      <HintPath>..\Assets\StimulDLL\Stimulsoft.Base.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Stimulsoft.Data">
+      <HintPath>..\Assets\StimulDLL\Stimulsoft.Data.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Stimulsoft.Report">
+      <HintPath>..\Assets\StimulDLL\Stimulsoft.Report.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Stimulsoft.Report.Helper">
+      <HintPath>..\Assets\StimulDLL\Stimulsoft.Report.Helper.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
