@@ -1,0 +1,36 @@
+# Run only HRMS.API when SQL Server is hosted elsewhere (local machine, cloud, etc.)
+services:
+  hrms.api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    image: hrms.api:latest
+    container_name: hrms-api
+    ports:
+      - "${API_PORT:-5000}:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5000
+      HttpPort: "5000"
+      ConnectionStrings__HRMSConnection: ${HRMS_CONNECTION:-Server=host.docker.internal,1433;Database=CoreHR;User Id=sa;Password=${SA_PASSWORD:-Loghaz/3612};TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true}
+      JWT__Key: ${JWT_KEY:-gjkfgjfkgjf458949584954$%_#)@#_@)#_@)#4}
+      JWT__JWTIssuer: ${JWT_ISSUER:-http://localhost:5000}
+      JWT__Audience: ${JWT_AUDIENCE:-http://localhost:4201}
+      Cors__AllowedOrigins__0: ${CORS_ORIGIN0:-http://localhost:4200}
+      Cors__AllowedOrigins__1: ${CORS_ORIGIN1:-http://localhost:4201}
+      KeepAlive__BaseUrl: ${KEEPALIVE_BASEURL:-http://localhost:5000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./HRMS.API/wwwroot:/app/wwwroot
+      - ./logs:/app/logs
+      - ./HRMS.API/InsuranceTemp:/app/InsuranceTemp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/swagger/index.html || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

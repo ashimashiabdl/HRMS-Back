@@ -13,6 +13,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Text;
 
@@ -32,6 +33,16 @@ namespace HR.Payroll.Infrastructure.Services
             (long)Enums.OrderStatus.LastOrder,
             (long)Enums.OrderStatus.FinalOrder
         };
+
+        /// <summary>
+        /// حداکثر تعداد تلاش برای هر حکم؛ بعد از آن حکم تا ری‌استارت برنامه (یا رفع دستی مشکل) دیگر پردازش و لاگ نمی‌شود
+        /// </summary>
+        private const int MaxAttemptsPerOrder = 2;
+
+        /// <summary>
+        /// شمارنده تلاش‌ها به تفکیک حکم (بین چرخه‌های جاب مشترک است چون سرویس Scoped ساخته می‌شود)
+        /// </summary>
+        private static readonly ConcurrentDictionary<long, int> OrderAttemptCounts = new();
 
         public ArearService(
             IMapper mapper,
@@ -60,38 +71,55 @@ namespace HR.Payroll.Infrastructure.Services
         public void CheckArearsAndCalculate()
         {
             var runId = Guid.NewGuid().ToString("N")[..8];
-            _logger.LogInformation("[{RunId}] شروع CheckArearsAndCalculate", runId);
 
             try
             {
                 _unitOfWork.Context.ChangeTracker.Clear();
 
-                AddBatchLog(new BatchLog
-                {
-                    LogDescription = $"[{runId}] سرکشی سرویس محاسبه معوقه گروهی"
-                });
-
                 var needToCheckOrders = LoadOrdersNeedingArearCalculation();
 
-                if (needToCheckOrders.Count == 0)
+                // حذف احکامی که به سقف تلاش رسیده‌اند تا در هر چرخه دوباره پردازش و لاگ نشوند
+                var eligibleOrders = needToCheckOrders
+                    .Where(o => OrderAttemptCounts.GetValueOrDefault(o.Id) < MaxAttemptsPerOrder)
+                    .ToList();
+
+                if (eligibleOrders.Count == 0)
                 {
-                    const string msg = "هیچ حکم واجد شرایطی برای محاسبه معوقه یافت نشد. شرایط: IsArrears=true، تایید حقوق، دوره تایید مشخص، وضعیت NeedToCalculate، وضعیت حکم نهایی/آخرین.";
-                    _logger.LogInformation("[{RunId}] {Message}", runId, msg);
-                    AddBatchLog(new BatchLog { LogDescription = $"[{runId}] {msg}" });
+                    // بدون کاندید جدید؛ عمداً هیچ BatchLog یا لاگ Information ثبت نمی‌شود تا لاگ تکراری تولید نشود
+                    _logger.LogDebug("[{RunId}] حکم واجد شرایط جدیدی برای محاسبه معوقه وجود ندارد (کل کاندید: {Total})",
+                        runId, needToCheckOrders.Count);
                     return;
                 }
 
-                _logger.LogInformation("[{RunId}] تعداد {Count} حکم جهت محاسبه معوقه یافت شد", runId, needToCheckOrders.Count);
+                _logger.LogInformation("[{RunId}] شروع CheckArearsAndCalculate — تعداد {Count} حکم جهت محاسبه معوقه", runId, eligibleOrders.Count);
                 AddBatchLog(new BatchLog
                 {
-                    LogDescription = $"[{runId}] تعداد {needToCheckOrders.Count} حکم جهت محاسبه معوقه یافت شد"
+                    LogDescription = $"[{runId}] تعداد {eligibleOrders.Count} حکم جهت محاسبه معوقه یافت شد"
                 });
 
-                foreach (var order in needToCheckOrders
+                foreach (var order in eligibleOrders
                     .OrderBy(i => i.RecruitOrder?.EmployeeId ?? 0)
                     .ThenBy(i => i.Serial))
                 {
-                    ProcessSingleOrderArear(order, runId);
+                    var attempt = OrderAttemptCounts.AddOrUpdate(order.Id, 1, (_, c) => c + 1);
+
+                    var success = ProcessSingleOrderArear(order, runId);
+
+                    if (success)
+                    {
+                        OrderAttemptCounts.TryRemove(order.Id, out _);
+                    }
+                    else if (attempt >= MaxAttemptsPerOrder)
+                    {
+                        var msg = $"حکم {order.Id} پس از {attempt} تلاش ناموفق از چرخه محاسبه معوقه کنار گذاشته شد؛ تا رفع مشکل (یا ری‌استارت سرویس) دیگر پردازش نمی‌شود.";
+                        _logger.LogWarning("[{RunId}] {Message}", runId, msg);
+                        AddBatchLog(new BatchLog
+                        {
+                            EmployeeId = order.RecruitOrder?.EmployeeId,
+                            InterdictOrderId = order.Id,
+                            LogDescription = $"[{runId}] {msg}"
+                        });
+                    }
                 }
 
                 _logger.LogInformation("[{RunId}] پایان CheckArearsAndCalculate", runId);
@@ -122,7 +150,8 @@ namespace HR.Payroll.Infrastructure.Services
                 .ToList();
         }
 
-        private void ProcessSingleOrderArear(InterdictOrder order, string runId)
+        /// <returns>true فقط وقتی محاسبه و ذخیره معوقه کامل موفق باشد</returns>
+        private bool ProcessSingleOrderArear(InterdictOrder order, string runId)
         {
             var employeeId = order.RecruitOrder?.EmployeeId;
             var orderCtx = $"حکمId={order.Id}، سریال={order.Serial}، کارمندId={employeeId?.ToString() ?? "نامشخص"}";
@@ -133,21 +162,21 @@ namespace HR.Payroll.Infrastructure.Services
                 {
                     FailOrder(order, runId,
                         $"ریشه مشکل: برای {orderCtx} رکورد استخدام (RecruitOrder) بارگذاری نشد؛ بدون آن محل خدمت/نوع استخدام مشخص نیست.");
-                    return;
+                    return false;
                 }
 
                 if (employeeId is null or <= 0)
                 {
                     FailOrder(order, runId,
                         $"ریشه مشکل: برای {orderCtx} شناسه کارمند روی حکم استخدام خالی است.");
-                    return;
+                    return false;
                 }
 
                 if (HasExistingArearFiches(order.Id))
                 {
                     SkipOrder(order, runId, employeeId.Value,
                         $"رد شد: برای {orderCtx} قبلاً فیش معوقه ثبت شده است. در صورت نیاز ابتدا فیش‌های معوقه قبلی را بررسی/حذف کنید.");
-                    return;
+                    return false;
                 }
 
                 if (!order.ApproveTimePaymentPeriod.HasValue || order.ApproveTimePaymentPeriod.Value <= 0)
@@ -155,7 +184,7 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         $"ریشه مشکل: برای {orderCtx} فیلد ApproveTimePaymentPeriod (دوره حقوقی زمان تایید حکم) خالی است؛ بدون آن دوره‌های بسته قبلی قابل شناسایی نیستند.",
                         employeeId);
-                    return;
+                    return false;
                 }
 
                 var relatedPeriod = _unitOfWork.Context.PaymentPeriods.Find(order.ApproveTimePaymentPeriod.Value);
@@ -164,7 +193,7 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         $"ریشه مشکل: برای {orderCtx} دوره حقوقی با شناسه {order.ApproveTimePaymentPeriod.Value} در جدول PaymentPeriod یافت نشد (ممکن است حذف شده باشد).",
                         employeeId);
-                    return;
+                    return false;
                 }
 
                 if (relatedPeriod.IsClosed)
@@ -172,7 +201,7 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         $"ریشه مشکل: دوره «{relatedPeriod.title}» (Id={relatedPeriod.Id}) که مبنای تایید حکم است بسته شده؛ محاسبه معوقه فقط وقتی دوره تایید باز باشد مجاز است.",
                         employeeId, relatedPeriod.Id);
-                    return;
+                    return false;
                 }
 
                 var blockingHigherSerial = FindBlockingHigherSerialOrders(order);
@@ -183,7 +212,7 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         $"ریشه مشکل: برای کارمند {employeeId} احکام با سریال بزرگ‌تر از {order.Serial} هنوز در کارتابل حقوق تعیین تکلیف نشده‌اند. ابتدا آن‌ها را تایید/رد کنید. جزئیات: {detail}",
                         employeeId);
-                    return;
+                    return false;
                 }
 
                 var includePeriods = FindClosedPeriodsForArear(order, relatedPeriod);
@@ -192,7 +221,7 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         $"ریشه مشکل: هیچ دوره بسته قبلی برای محاسبه معوقه یافت نشد. شرط: سال={relatedPeriod.ShamsiYear}، ماه < {relatedPeriod.ShamsiMonth}، بسته بودن دوره، StartDate بین تاریخ اجرای حکم ({order.StartDate:yyyy/MM/dd}) و شروع دوره تایید ({relatedPeriod.StartDate:yyyy/MM/dd}).",
                         employeeId, relatedPeriod.Id);
-                    return;
+                    return false;
                 }
 
                 LogOrder(order, runId, employeeId.Value,
@@ -224,7 +253,7 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         $"ریشه مشکل: هیچ فیش معوقه‌ای برای {orderCtx} محاسبه نشد. جزئیات دوره‌ها: {string.Join(" ؛ ", skippedPeriods)}",
                         employeeId, relatedPeriod.Id);
-                    return;
+                    return false;
                 }
 
                 var persistResult = PersistArearCalculation(order, calculatedFiches, relatedPeriod, runId, skippedPeriods);
@@ -233,7 +262,10 @@ namespace HR.Payroll.Infrastructure.Services
                     FailOrder(order, runId,
                         persistResult.Message ?? "خطای نامشخص در ذخیره فیش معوقه",
                         employeeId, relatedPeriod.Id);
+                    return false;
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -241,6 +273,7 @@ namespace HR.Payroll.Infrastructure.Services
                 FailOrder(order, runId,
                     $"ریشه مشکل (استثنا): {BuildRootCause(ex)} — زمینه: {orderCtx}",
                     order.RecruitOrder?.EmployeeId);
+                return false;
             }
         }
 
