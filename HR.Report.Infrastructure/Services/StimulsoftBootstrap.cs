@@ -55,7 +55,7 @@ public static class StimulsoftBootstrap
             return;
         }
 
-        StiLicense.Key = StimulsoftLicenseKey;
+      //  StiLicense.Key = StimulsoftLicenseKey;
 
         // Match ConvertToolBox: Compilation mode + Compile()/Render(). Do not force Interpretation —
         // Interpretation with these Designer templates yields NullReferenceException inside Render.
