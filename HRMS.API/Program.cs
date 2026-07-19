@@ -141,8 +141,8 @@ TaskScheduler.UnobservedTaskException += (_, e) =>
 // EPPlus 8+ requires license to be set once at startup before any ExcelPackage use
 ExcelPackage.License.SetNonCommercialOrganization("HRMS");
 
-StimulsoftAssemblyResolver.EnsureRegistered();
-StimulsoftBootstrap.EnsureInitialized();
+// StimulsoftAssemblyResolver.EnsureRegistered();
+// StimulsoftBootstrap.EnsureInitialized();
 
 try
 {
